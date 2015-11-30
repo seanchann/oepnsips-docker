@@ -1,0 +1,65 @@
+FROM rpmtoolchain
+MAINTAINER The opensips build rpm package image <http://seanchann.github.io/> - seanchann zhou
+
+
+### build env
+RUN yum install --setopt=tsflags=nodocs -y epel-release; yum clean all
+
+# for mogo-c-driver 
+RUN yum install --setopt=tsflags=nodocs -y python-sphinx doxygen
+
+# for OSPToolkit
+RUN yum install --setopt=tsflags=nodocs -y openssl-devel
+
+# for mediaproxy
+RUN yum install --setopt=tsflags=nodocs -y iptables-devel libnetfilter_conntrack-devel python-devel
+
+# for monit
+RUN yum install --setopt=tsflags=nodocs -y pam-devel
+
+# for thrift
+# if thrift with java ,then install package :
+#ant jakarta-commons-lang slf4j  java-1.6.0-openjdk-javadoc java-1.6.0-openjdk-devel
+# if thrift with php, then install package :
+# php-devel
+RUN yum install --setopt=tsflags=nodocs -y ruby byacc dos2unix libevent-devel libtool\
+    mono-devel boost-devel
+
+# for libcouchbase
+#RUN yum install --setopt=tsflags=nodocs -y java
+
+# for opensips
+RUN yum install --setopt=tsflags=nodocs -y  postgresql-devel unixODBC-devel expat-devel lm_sensors-devel\
+    net-snmp-devel openldap-devel GeoIP-devel json-c-devel\
+    xmlrpc-c-devel libmicrohttpd-devel perl-ExtUtils-Embed\
+    radiusclient-ng-devel libconfuse-devel librabbitmq-devel\
+    hiredis-devel  db4-devel libmemcached-devel lua-devel\
+    lynx libxslt ncurses-devel
+
+# for thridpart rpm install dependence
+RUN yum install --setopt=tsflags=nodocs -y openssl perl-Bit-Vector perl-Business-ISBN \
+    perl-Business-ISBN-Data  perl-Carp-Clan perl-Class-Accessor perl-Compress-Raw-Bzip2 \
+    perl-Compress-Raw-Zlib  perl-Digest  perl-Digest-MD5  perl-Encode-Locale \
+    perl-File-Listing perl-HTML-Parser perl-HTML-Tagset perl-HTTP-Cookies \
+    perl-HTTP-Daemon  perl-HTTP-Date perl-HTTP-Message perl-HTTP-Negotiate \
+    perl-IO-Compress perl-IO-HTML perl-IO-Socket-IP perl-IO-Socket-SSL \
+    perl-IO-String  perl-LWP-MediaTypes  perl-Net-HTTP  perl-Net-LibIDN \
+    perl-Net-SSLeay perl-TimeDate perl-URI perl-WWW-RobotRules perl-libwww-perl \
+    libev
+
+
+#use offical mysql imange
+RUN rpm -Uvh http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm
+RUN yum install --setopt=tsflags=nodocs -y mysql mysql-devel
+
+### install httpd for repo
+RUN yum install --setopt=tsflags=nodocs -y httpd; yum clean all
+
+ENV BUILD_HOME /home/opensips/voip
+
+RUN echo "export OPENSIPHOMEDIR=${BUILD_HOME}/"  >> /etc/profile
+RUN echo "export RPMDIR=${RPMROOTDIR}"  >> /etc/profile
+
+ONBUILD RUN  mkdir -p /home/opensips/voip
+ONBUILD ADD .  /home/opensips/voip/
+ONBUILD RUN chown -R  opensips.opensips /home/opensips/voip/

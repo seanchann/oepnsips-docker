@@ -1,0 +1,29 @@
+FROM centos:centos7
+MAINTAINER The rpmbuild development tools chain image <http://seanchann.github.io/> - seanchann zhou
+
+# add the worker user named opensips
+RUN  yum -y install passwd sudo; yum clean all \
+  && groupadd -r -g 6000 opensips \
+  && useradd -u 6000 -r -m -g opensips opensips \
+  && passwd -d opensips \
+  && echo "%opensips           ALL=(ALL)       NOPASSWD:ALL" >> /etc/sudoers
+
+
+#install build tools
+RUN  yum -y install  cmake make gcc gcc-c++ tar rpm-build  rpm-sign flex bison createrepo; yum clean all
+
+#configure user smit rpmbuild env
+USER opensips
+RUN mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS} \
+  && echo '%_topdir %(echo $HOME)/rpmbuild'  > ~/.rpmmacros
+
+
+# sign rpm with our private gpg
+#ADD  ./RPM-GPG-KEY-RH.private  /opt/
+#RUN  gpg  --import /opt/RPM-GPG-KEY-RH.private \
+#  && echo '%_signature gpg' >> ~/.rpmmacros \
+#  && echo '%_gpg_name  xqzhou (RPM development) <xqzhou@ronghe.tv>' >> ~/.rpmmacros
+
+
+ENV RPMROOTDIR ~/rpmbuild/
+
